@@ -31,14 +31,21 @@ nodes:
   extraPortMappings:
   - containerPort: 80
     hostPort: 80
-  - containerPort: 30000
-    hostPort: 30000
-  - containerPort: 30001
-    hostPort: 30001
-  - containerPort: 30003
-    hostPort: 30003
   - containerPort: 443
     hostPort: 443
+  # MYSQL
+  - containerPort: 30000
+    hostPort: 30000
+  # REDIS
+  - containerPort: 30001
+    hostPort: 30001
+  # ELASTICSEARCH
+  - containerPort: 30002
+    hostPort: 30002
+  - containerPort: 30003
+    hostPort: 30003
+  - containerPort: 30004
+    hostPort: 30004
 # the three workers
 - role: worker
 - role: worker

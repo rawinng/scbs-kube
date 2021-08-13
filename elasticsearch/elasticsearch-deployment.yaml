@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: scbs-local-dev
+spec:
+  serviceName: elasticsearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "1000m"
+        ports:
+        - containerPort: 9200
+        env:
+          - name: "discovery.type"
+            value: "single-node"
+          - name: "bootstrap.memory_lock"
+            value: "true"
+          - name: ES_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-config
+  namespace: scbs-local-dev
+data:
+  kibana.yml: |
+    # Default Kibana configuration for docker target
+    server.host: "0"
+    server.shutdownTimeout: "5s"
+    elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+    monitoring.ui.container.elasticsearch.enabled: true
+    server.rewriteBasePath: true
+    server.basePath: /kibana
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: scbs-local-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:7.14.0
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "512m"
+        ports:
+        - containerPort: 5601
+        volumeMounts:
+        - name: config
+          mountPath: "/usr/share/kibana/config"
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: kibana-config
+          items:
+            - key: "kibana.yml"
+              path: "kibana.yml"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: scbs-local-dev
+spec:
+  selector:
+    app: elasticsearch
+  type: NodePort
+  ports:
+  - port: 9200
+    targetPort: 9200
+    nodePort: 30002
+    name: first-port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: scbs-local-dev
+spec:
+  selector:
+    app: kibana
+  ports:
+  - port: 5601
+    targetPort: 5601

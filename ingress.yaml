@@ -16,3 +16,10 @@ spec:
             name: redis-manager
             port:
               number: 8081
+      - pathType: Prefix
+        path: "/kibana"
+        backend:
+          service:
+            name: kibana
+            port:
+              number: 5601
