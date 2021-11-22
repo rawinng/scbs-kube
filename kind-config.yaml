@@ -48,4 +48,3 @@ nodes:
     hostPort: 30004
 # the three workers
 - role: worker
-- role: worker
